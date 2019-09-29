@@ -14,7 +14,7 @@ trigger UpdateProjectDates on Stage__c (after insert)
         {
             List<Project__c> allProject = new List<Project__c>();
             allProject = [SELECT id, start_date__c, End_date__c FROM project__c 
-                          WHERE id IN : proIds AND (start_date__c = NULL OR End_date__c = NULL)]; //fetches project without start OR end Date
+                          WHERE id IN : proIds AND (start_date__c = NULL OR End_date__c = NULL) LIMIT 49999]; //fetches project without start OR end Date
             
             if(allProject != Null && allProject.size() > 0)
             {
@@ -53,7 +53,7 @@ trigger UpdateProjectDates on Stage__c (after insert)
                 }
                 if(endDate != NULL)
                 {   
-                    for(Id pId : endDate.keySet())
+                    for(Id pId : endDate.keySet()) 
                     {
                         project__c p = new Project__c(id= pId);
                         p.End_Date__c = endDate.get(pId);// assign endDate
