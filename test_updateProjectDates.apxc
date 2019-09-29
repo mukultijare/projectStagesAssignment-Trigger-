@@ -1,0 +1,51 @@
+//THis testClass gives 100% Test Coverage
+@isTest
+public class test_updateProjectDates 
+{
+    @testSetup
+    public static void testmethod1()
+    {
+        List<project__c> proList = new List<project__c>();
+        
+        Project__c pro = new Project__c();
+        pro.Name = 'Mukul Test';
+        pro.Start_Date__c = system.today();
+        proList.add(pro);
+        
+        Project__c pro1 = new Project__c();
+        pro1.Name = 'Mukul Test';
+        pro1.end_date__c = system.today();
+        proList.add(pro1);
+        
+        insert proList;
+        
+        List<stage__c> st = new List<stage__c>();
+        stage__c st1 = new stage__c();
+        st1.name = '1';
+        st1.project__c = pro.Id;
+        st1.start_date__c = system.today();
+        st1.end_date__c = system.today() + 10;
+        st.add(st1);
+        
+        stage__c st2 = new stage__c();
+        st2.name = '2';
+        st2.project__c =  pro1.Id;
+        st2.start_date__c = system.today()+2;
+        st2.end_date__c = system.today() + 6;
+        st.add(st2);
+        
+        stage__c st3 = new stage__c();
+        st3.name = 'st3';
+        st3.project__c =  pro.Id;
+        st3.start_date__c = system.today()+1;
+        st3.end_date__c = system.today() + 3;
+        st.add(st3);
+        
+        insert st;        
+    }
+    public static testmethod void method2()
+    {
+        List<project__c> proList = [select id from project__c];
+ 		    system.assertEquals(proList.size(), 2);       
+    }
+}
