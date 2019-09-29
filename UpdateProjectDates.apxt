@@ -1,0 +1,74 @@
+trigger UpdateProjectDates on Stage__c (after insert) 
+{
+    if(Trigger.isInsert && trigger.isAfter)
+    {
+        Set<Project__c> ListToUPdate = new Set<Project__c>();
+
+        Set<id> proIds = new Set<Id>();
+        for(Stage__c stg : trigger.new)
+        {
+            proIds.add(stg.Project__c); //Collect All Project Ids from Stages
+        }
+        
+        if(proIds.size() > 0)
+        {
+            List<Project__c> allProject = new List<Project__c>();
+            allProject = [SELECT id, start_date__c, End_date__c FROM project__c 
+                          WHERE id IN : proIds AND (start_date__c = NULL OR End_date__c = NULL)]; //fetches project without start OR end Date
+            
+            if(allProject != Null && allProject.size() > 0)
+            {
+                Map<id, Date> startDate = new Map<id, Date>();//Map of Project Id and StartDate(Smallest) from Stage 
+                Map<id, Date> endDate = new Map<id, Date>();//Map of Project Id and EndDate(Largest) from Stage
+                for(Project__c pro : allProject)
+                {
+                    for(Stage__c stg : Trigger.new)
+                    {
+                        if(pro.Id == stg.Project__c) 
+                        {
+                            system.debug('stg::::'+stg);
+                            //Check StartDate Null and Start date which added into Map is greater
+                            if(pro.start_date__c == NULL && (startDate.get(pro.id) == NULL || startDate.get(pro.id) > stg.Start_Date__c))
+                            {
+                                startDate.put(pro.id, stg.Start_Date__c);
+                                system.debug('startDate:::::'+startDate);
+                            }
+                            //Check EndDate Null and End date which added into Map is smaller
+                            else if(pro.end_date__c == NULL && (endDate.get(pro.id) == NULL || endDate.get(pro.id) < stg.End_Date__c))
+                            {
+                                endDate.put(pro.id, stg.End_Date__c);
+                                system.debug('endDate:::::'+endDate);
+                            }
+                        }
+                    }                       
+                }
+                if(startDate != NULL)
+                {
+                    for(Id pId : startDate.keyset())
+                    {
+                        project__c p = new Project__c(id= pId);
+                        p.Start_Date__c = startDate.get(pId); //assign Start date 
+                        ListToUPdate.add(p);
+                    }
+                }
+                if(endDate != NULL)
+                {   
+                    for(Id pId : endDate.keySet())
+                    {
+                        project__c p = new Project__c(id= pId);
+                        p.End_Date__c = endDate.get(pId);// assign endDate
+                        ListToUPdate.add(p);
+                    }
+                }
+                
+                if(ListtoUpdate != NULL && listToUPdate.size() >0 )
+                {
+                    List<Project__c> setToList = new List<Project__c>();
+                    setToList.addAll(ListtoUpdate);
+                    
+                    UPDATE setToList;// update Project with Start and End Date
+                }
+            }            
+        }
+    }
+}
